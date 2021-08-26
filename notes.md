@@ -24,8 +24,41 @@ https://docs.microsoft.com/en-us/aspnet/core/tutorials/first-mongo-app?view=aspn
 <al momento de ejecutar el programa .net remueve el sufijo Async por eso
 al decir nameof(GetItemAsync), GetItemAsync se convierte en GetItem
 y no encuentra el metodo>
-      -> en startUp.cs
-          services.AddControllers(options =>
-          {
-            options.SuppressAsyncSuffixInActionNames = false;
-          });
+-> en startUp.cs
+services.AddControllers(options =>
+{
+options.SuppressAsyncSuffixInActionNames = false;
+});
+
+<Para configurar la base de datos de mongo primero>
+<en appsettings.json>
+      "MongoDbSettings": 
+      {
+            "Host": "localhost",
+            "Port": "27017"
+      }
+<en startup>
+      services.AddSingleton<IMongoClient>(ServiceProvider => 
+      {
+        var settings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
+        return new MongoClient(settings.ConnectionString);
+      });
+      services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
+
+<crear la clase mongodbsettgins.cs>
+      namespace Catalog.Settings
+      {
+            public class MongoDbSettings
+            {
+                  public string Host { get; set; }
+                  public int Port { get; set; }
+
+                  public string ConnectionString
+                  {
+                        get
+                        {
+                        return $"mongodb://{Host}:{Port}";
+                        }
+                  }
+            }
+      }
